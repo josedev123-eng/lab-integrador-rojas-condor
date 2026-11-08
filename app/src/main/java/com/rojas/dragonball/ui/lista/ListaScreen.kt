@@ -1,5 +1,6 @@
 package com.rojas.dragonball.ui.lista
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.rojas.dragonball.domain.model.Item
 import com.rojas.dragonball.ui.UiState
@@ -37,19 +37,31 @@ import com.rojas.dragonball.ui.components.ErrorView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListaScreen(
-    onItemClick: (Int) -> Unit,
-    viewModel: ListaViewModel = viewModel()
+    viewModel: ListaViewModel,
+    onItemClick: (Int) -> Unit
 ) {
     // La pantalla solo observa el estado del ViewModel
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val aviso by viewModel.aviso.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Personajes de Dragon Ball") }) }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        Column(modifier = Modifier.padding(padding)) {
+            // Aviso de sin conexion (cuando hay datos guardados)
+            aviso?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(8.dp)
+                )
+            }
             when (val e = estado) {
                 is UiState.Cargando -> Cargando()
-                is UiState.Error -> ErrorView(mensaje = e.mensaje, onReintentar = { })
+                is UiState.Error -> ErrorView(mensaje = e.mensaje, onReintentar = { viewModel.refrescar() })
                 is UiState.Exito -> {
                     if (e.datos.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

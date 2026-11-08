@@ -1,28 +1,75 @@
 package com.rojas.dragonball.ui.lista
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.rojas.dragonball.AppContainer
+import com.rojas.dragonball.data.repository.ItemRepository
 import com.rojas.dragonball.domain.model.Item
 import com.rojas.dragonball.ui.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
-class ListaViewModel : ViewModel() {
+class ListaViewModel(
+    private val repo: ItemRepository
+) : ViewModel() {
 
     private val _estado = MutableStateFlow<UiState<List<Item>>>(UiState.Cargando)
     val estado: StateFlow<UiState<List<Item>>> = _estado.asStateFlow()
 
+    // Mensaje cuando no hay internet pero si hay datos guardados
+    private val _aviso = MutableStateFlow<String?>(null)
+    val aviso: StateFlow<String?> = _aviso.asStateFlow()
+
+    private var refrescoTerminado = false
+
     init {
-        // Por ahora datos de prueba, luego vendran de la API
-        _estado.value = UiState.Exito(datosDePrueba)
+        viewModelScope.launch {
+            repo.items.collect { lista ->
+                // Se queda en Cargando hasta que termine el primer refresco
+                if (lista.isNotEmpty() || refrescoTerminado) _estado.value = UiState.Exito(lista)
+            }
+        }
+        refrescar()
     }
 
-    private val datosDePrueba: List<Item>
-        get() = listOf(
-            Item(1, "Goku", "Saiyan", "60.000.000", "Z Fighter", null),
-            Item(2, "Vegeta", "Saiyan", "54.000.000", "Z Fighter", null),
-            Item(3, "Piccolo", "Namekian", "2.000.000", "Z Fighter", null),
-            Item(4, "Bulma", "Human", "0", "Z Fighter", null),
-            Item(5, "Freezer", "Frieza Race", "530.000", "Army of Frieza", null)
-        )
+    fun refrescar() {
+        viewModelScope.launch {
+            val resultado = repo.refrescar()
+            refrescoTerminado = true
+            resultado
+                .onSuccess {
+                    if (_estado.value is UiState.Cargando) _estado.value = UiState.Exito(emptyList())
+                    _aviso.value = null
+                }
+                .onFailure { e ->
+                    if (repo.cantidadGuardada() == 0) _estado.value = UiState.Error(mensajeDe(e))
+                    else _aviso.value = "Sin conexión: mostrando datos guardados"
+                }
+        }
+    }
+
+    fun alternarFavorito(id: Int) {
+        viewModelScope.launch { repo.alternarFavorito(id) }
+    }
+
+    private fun mensajeDe(e: Throwable): String = when (e) {
+        is IOException -> "No hay conexión a internet"
+        is HttpException -> "El servidor respondió con error ${e.code()}"
+        else -> "Ocurrió un error inesperado"
+    }
+}
+
+// Crea el ListaViewModel pasandole el repositorio del AppContainer
+class ListaViewModelFactory(
+    private val contenedor: AppContainer
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return ListaViewModel(contenedor.itemRepository) as T
+    }
 }
