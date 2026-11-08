@@ -8,6 +8,8 @@ import com.rojas.dragonball.data.remote.ApiService
 import com.rojas.dragonball.data.remote.RetrofitClient
 import com.rojas.dragonball.data.repository.ItemRepository
 import com.rojas.dragonball.data.repository.ItemRepositoryImpl
+import com.rojas.dragonball.notification.Notificador
+import com.rojas.dragonball.notification.NotificadorAndroid
 
 // Crea las dependencias de la app en un solo lugar
 class AppContainer(context: Context) {
@@ -16,4 +18,5 @@ class AppContainer(context: Context) {
 
     val itemRepository: ItemRepository = ItemRepositoryImpl(api, baseDeDatos.itemDao())
     val authRepository: AuthRepository = FirebaseAuthRepository()
+    val notificador: Notificador = NotificadorAndroid(context.applicationContext)
 }

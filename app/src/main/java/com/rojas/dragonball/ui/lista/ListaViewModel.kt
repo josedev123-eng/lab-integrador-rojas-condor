@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.rojas.dragonball.AppContainer
 import com.rojas.dragonball.data.repository.ItemRepository
 import com.rojas.dragonball.domain.model.Item
+import com.rojas.dragonball.notification.Notificador
 import com.rojas.dragonball.ui.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import retrofit2.HttpException
 import java.io.IOException
 
 class ListaViewModel(
-    private val repo: ItemRepository
+    private val repo: ItemRepository,
+    private val notificador: Notificador      // interface: el ViewModel no recibe Context
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow<UiState<List<Item>>>(UiState.Cargando)
@@ -42,9 +44,10 @@ class ListaViewModel(
             val resultado = repo.refrescar()
             refrescoTerminado = true
             resultado
-                .onSuccess {
+                .onSuccess { n ->
                     if (_estado.value is UiState.Cargando) _estado.value = UiState.Exito(emptyList())
                     _aviso.value = null
+                    notificador.mostrar("Datos actualizados", "Se guardaron $n elementos")
                 }
                 .onFailure { e ->
                     if (repo.cantidadGuardada() == 0) _estado.value = UiState.Error(mensajeDe(e))
@@ -70,6 +73,6 @@ class ListaViewModelFactory(
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ListaViewModel(contenedor.itemRepository) as T
+        return ListaViewModel(contenedor.itemRepository, contenedor.notificador) as T
     }
 }

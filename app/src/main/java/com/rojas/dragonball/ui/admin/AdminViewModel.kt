@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.rojas.dragonball.AppContainer
 import com.rojas.dragonball.data.repository.ItemRepository
+import com.rojas.dragonball.notification.Notificador
 import com.rojas.dragonball.ui.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 data class Totales(val guardados: Int, val favoritos: Int)
 
 class AdminViewModel(
-    private val repo: ItemRepository
+    private val repo: ItemRepository,
+    private val notificador: Notificador
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow<UiState<Totales>>(UiState.Cargando)
@@ -39,7 +41,10 @@ class AdminViewModel(
         viewModelScope.launch {
             _estado.value = UiState.Cargando
             repo.refrescar()
-                .onSuccess { n -> _mensaje.value = "Se guardaron $n personajes" }
+                .onSuccess { n ->
+                    _mensaje.value = "Se guardaron $n personajes"
+                    notificador.mostrar("Datos actualizados", "Se guardaron $n elementos")
+                }
                 .onFailure { _mensaje.value = "No se pudo sincronizar: revisa tu conexión" }
             cargarTotales()
         }
@@ -59,6 +64,6 @@ class AdminViewModelFactory(
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AdminViewModel(contenedor.itemRepository) as T
+        return AdminViewModel(contenedor.itemRepository, contenedor.notificador) as T
     }
 }
