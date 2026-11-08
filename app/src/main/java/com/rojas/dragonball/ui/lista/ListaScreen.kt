@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
@@ -45,7 +46,9 @@ import com.rojas.dragonball.ui.components.ErrorView
 @Composable
 fun ListaScreen(
     viewModel: ListaViewModel,
+    esAdmin: Boolean,
     onItemClick: (Int) -> Unit,
+    onAbrirAdmin: () -> Unit,
     onVerFavoritos: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
@@ -58,6 +61,12 @@ fun ListaScreen(
             TopAppBar(
                 title = { Text("Personajes de Dragon Ball") },
                 actions = {
+                    // Solo el admin ve el acceso al panel
+                    if (esAdmin) {
+                        IconButton(onClick = onAbrirAdmin) {
+                            Icon(Icons.Filled.AdminPanelSettings, contentDescription = "Panel Admin")
+                        }
+                    }
                     // Boton para ir a la pantalla Favoritos
                     IconButton(onClick = onVerFavoritos) {
                         Icon(Icons.Filled.Star, contentDescription = "Ver favoritos")

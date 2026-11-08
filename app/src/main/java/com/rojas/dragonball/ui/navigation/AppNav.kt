@@ -1,6 +1,9 @@
 package com.rojas.dragonball.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -8,6 +11,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.rojas.dragonball.AppContainer
+import com.rojas.dragonball.domain.model.Rol
+import com.rojas.dragonball.ui.UiState
+import com.rojas.dragonball.ui.admin.AdminScreen
+import com.rojas.dragonball.ui.admin.AdminViewModel
+import com.rojas.dragonball.ui.admin.AdminViewModelFactory
 import com.rojas.dragonball.ui.detalle.DetalleScreen
 import com.rojas.dragonball.ui.detalle.DetalleViewModel
 import com.rojas.dragonball.ui.detalle.DetalleViewModelFactory
@@ -27,6 +35,11 @@ fun AppNav(contenedor: AppContainer) {
 
     // Se crea fuera del NavHost para que la sesion se comparta en toda la app
     val loginVm: LoginViewModel = viewModel(factory = LoginViewModelFactory(contenedor))
+    val estadoLogin by loginVm.estado.collectAsStateWithLifecycle()
+
+    // El rol viene de Firestore (se leyo al iniciar sesion)
+    val sesion = (estadoLogin as? UiState.Exito)?.datos
+    val esAdmin = sesion?.rol == Rol.ADMIN
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
@@ -44,7 +57,9 @@ fun AppNav(contenedor: AppContainer) {
             val vm: ListaViewModel = viewModel(factory = ListaViewModelFactory(contenedor))
             ListaScreen(
                 viewModel = vm,
+                esAdmin = esAdmin,
                 onItemClick = { id -> navController.navigate("detalle/$id") },
+                onAbrirAdmin = { navController.navigate("admin") },
                 onVerFavoritos = { navController.navigate("favoritos") },
                 onCerrarSesion = {
                     loginVm.cerrarSesion()
@@ -52,6 +67,18 @@ fun AppNav(contenedor: AppContainer) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+        composable("admin") {
+            // Si alguien que no es admin llega aqui, se regresa
+            if (!esAdmin) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+                return@composable
+            }
+            val vm: AdminViewModel = viewModel(factory = AdminViewModelFactory(contenedor))
+            AdminScreen(
+                viewModel = vm,
+                onVolver = { navController.popBackStack() }
             )
         }
         composable("favoritos") {
