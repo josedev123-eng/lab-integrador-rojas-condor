@@ -11,7 +11,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val contenedor = AppContainer()
+        val contenedor = AppContainer(applicationContext)
         setContent {
             DragonBallTheme {
                 AppNav(contenedor)
