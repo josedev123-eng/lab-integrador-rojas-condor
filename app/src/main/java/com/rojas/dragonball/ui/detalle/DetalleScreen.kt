@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.rojas.dragonball.domain.model.Item
 import com.rojas.dragonball.ui.UiState
+import com.rojas.dragonball.ui.components.AvisoSinConexion
 import com.rojas.dragonball.ui.components.Cargando
 import com.rojas.dragonball.ui.components.ErrorView
 
@@ -36,6 +37,7 @@ fun DetalleScreen(
     onVolver: () -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val aviso by viewModel.aviso.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -50,17 +52,20 @@ fun DetalleScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
+            aviso?.let {
+                AvisoSinConexion(texto = it, onReintentar = { viewModel.cargar() })
+            }
             when (val e = estado) {
                 is UiState.Cargando -> Cargando()
                 is UiState.Error -> ErrorView(mensaje = e.mensaje, onReintentar = { viewModel.cargar() })
-                is UiState.Exito -> ContenidoDetalle(e.datos)
+                is UiState.Exito -> ContenidoDetalle(item = e.datos, sinConexion = aviso != null)
             }
         }
     }
 }
 
 @Composable
-fun ContenidoDetalle(item: Item) {
+fun ContenidoDetalle(item: Item, sinConexion: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -80,6 +85,10 @@ fun ContenidoDetalle(item: Item) {
         Text("${item.raza} · ${item.afiliacion}", style = MaterialTheme.typography.titleSmall)
         Spacer(modifier = Modifier.height(8.dp))
         Text("Ki: ${item.ki}")
+
+        // Sin internet solo se tienen los datos basicos guardados en Room
+        if (sinConexion) return@Column
+
         Text("Planeta de origen: ${item.planeta.ifEmpty { "Desconocido" }}")
 
         Spacer(modifier = Modifier.height(12.dp))

@@ -1,6 +1,5 @@
 package com.rojas.dragonball.ui.lista
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.rojas.dragonball.domain.model.Item
 import com.rojas.dragonball.ui.UiState
+import com.rojas.dragonball.ui.components.AvisoSinConexion
 import com.rojas.dragonball.ui.components.Cargando
 import com.rojas.dragonball.ui.components.ErrorView
 
@@ -67,14 +67,7 @@ fun ListaScreen(
         Column(modifier = Modifier.padding(padding)) {
             // Aviso de sin conexion (cuando hay datos guardados)
             aviso?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(8.dp)
-                )
+                AvisoSinConexion(texto = it, onReintentar = { viewModel.refrescar() })
             }
             when (val e = estado) {
                 is UiState.Cargando -> Cargando()

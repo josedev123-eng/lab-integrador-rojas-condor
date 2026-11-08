@@ -10,6 +10,7 @@ import com.rojas.dragonball.ui.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -21,6 +22,10 @@ class DetalleViewModel(
     private val _estado = MutableStateFlow<UiState<Item>>(UiState.Cargando)
     val estado: StateFlow<UiState<Item>> = _estado.asStateFlow()
 
+    // Aviso cuando el detalle se muestra con los datos guardados
+    private val _aviso = MutableStateFlow<String?>(null)
+    val aviso: StateFlow<String?> = _aviso.asStateFlow()
+
     init {
         cargar()
     }
@@ -29,11 +34,21 @@ class DetalleViewModel(
         viewModelScope.launch {
             _estado.value = UiState.Cargando
             repo.obtenerDetalle(id)
-                .onSuccess { _estado.value = UiState.Exito(it) }
+                .onSuccess {
+                    _aviso.value = null
+                    _estado.value = UiState.Exito(it)
+                }
                 .onFailure { e ->
-                    val mensaje = if (e is IOException) "No hay conexión a internet"
-                    else "No se pudo cargar el personaje"
-                    _estado.value = UiState.Error(mensaje)
+                    // Sin internet: se busca el personaje en lo guardado en Room
+                    val guardado = repo.items.first().find { it.id == id }
+                    if (e is IOException && guardado != null) {
+                        _aviso.value = "Sin conexión: faltan el planeta y las transformaciones"
+                        _estado.value = UiState.Exito(guardado)
+                    } else {
+                        val mensaje = if (e is IOException) "No hay conexión a internet"
+                        else "No se pudo cargar el personaje"
+                        _estado.value = UiState.Error(mensaje)
+                    }
                 }
         }
     }
