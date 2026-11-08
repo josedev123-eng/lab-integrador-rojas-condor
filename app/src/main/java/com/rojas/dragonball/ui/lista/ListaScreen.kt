@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
@@ -45,7 +46,8 @@ import com.rojas.dragonball.ui.components.ErrorView
 fun ListaScreen(
     viewModel: ListaViewModel,
     onItemClick: (Int) -> Unit,
-    onVerFavoritos: () -> Unit
+    onVerFavoritos: () -> Unit,
+    onCerrarSesion: () -> Unit
 ) {
     // La pantalla solo observa el estado del ViewModel
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -59,6 +61,9 @@ fun ListaScreen(
                     // Boton para ir a la pantalla Favoritos
                     IconButton(onClick = onVerFavoritos) {
                         Icon(Icons.Filled.Star, contentDescription = "Ver favoritos")
+                    }
+                    IconButton(onClick = onCerrarSesion) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión")
                     }
                 }
             )

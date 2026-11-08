@@ -1,6 +1,8 @@
 package com.rojas.dragonball
 
 import android.content.Context
+import com.rojas.dragonball.data.auth.AuthRepository
+import com.rojas.dragonball.data.auth.FirebaseAuthRepository
 import com.rojas.dragonball.data.local.AppDatabase
 import com.rojas.dragonball.data.remote.ApiService
 import com.rojas.dragonball.data.remote.RetrofitClient
@@ -13,4 +15,5 @@ class AppContainer(context: Context) {
     private val baseDeDatos: AppDatabase = AppDatabase.obtener(context)
 
     val itemRepository: ItemRepository = ItemRepositoryImpl(api, baseDeDatos.itemDao())
+    val authRepository: AuthRepository = FirebaseAuthRepository()
 }

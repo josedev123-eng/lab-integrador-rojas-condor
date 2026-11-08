@@ -17,19 +17,41 @@ import com.rojas.dragonball.ui.favoritos.FavoritosViewModelFactory
 import com.rojas.dragonball.ui.lista.ListaScreen
 import com.rojas.dragonball.ui.lista.ListaViewModel
 import com.rojas.dragonball.ui.lista.ListaViewModelFactory
+import com.rojas.dragonball.ui.login.LoginScreen
+import com.rojas.dragonball.ui.login.LoginViewModel
+import com.rojas.dragonball.ui.login.LoginViewModelFactory
 
 @Composable
 fun AppNav(contenedor: AppContainer) {
     val navController = rememberNavController()
 
-    // Por ahora empieza en la lista; el login se agrega en H13
-    NavHost(navController = navController, startDestination = "lista") {
+    // Se crea fuera del NavHost para que la sesion se comparta en toda la app
+    val loginVm: LoginViewModel = viewModel(factory = LoginViewModelFactory(contenedor))
+
+    NavHost(navController = navController, startDestination = "login") {
+        composable("login") {
+            LoginScreen(
+                viewModel = loginVm,
+                onIngresar = {
+                    // Al ingresar se borra el login del historial para no volver con "atras"
+                    navController.navigate("lista") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
         composable("lista") {
             val vm: ListaViewModel = viewModel(factory = ListaViewModelFactory(contenedor))
             ListaScreen(
                 viewModel = vm,
                 onItemClick = { id -> navController.navigate("detalle/$id") },
-                onVerFavoritos = { navController.navigate("favoritos") }
+                onVerFavoritos = { navController.navigate("favoritos") },
+                onCerrarSesion = {
+                    loginVm.cerrarSesion()
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
         composable("favoritos") {
