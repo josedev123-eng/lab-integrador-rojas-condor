@@ -15,7 +15,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,14 +44,25 @@ import com.rojas.dragonball.ui.components.ErrorView
 @Composable
 fun ListaScreen(
     viewModel: ListaViewModel,
-    onItemClick: (Int) -> Unit
+    onItemClick: (Int) -> Unit,
+    onVerFavoritos: () -> Unit
 ) {
     // La pantalla solo observa el estado del ViewModel
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Personajes de Dragon Ball") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Personajes de Dragon Ball") },
+                actions = {
+                    // Boton para ir a la pantalla Favoritos
+                    IconButton(onClick = onVerFavoritos) {
+                        Icon(Icons.Filled.Star, contentDescription = "Ver favoritos")
+                    }
+                }
+            )
+        }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             // Aviso de sin conexion (cuando hay datos guardados)
@@ -73,7 +90,11 @@ fun ListaScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(e.datos) { item ->
-                                ItemCard(item = item, onClick = { onItemClick(item.id) })
+                                ItemCard(
+                                    item = item,
+                                    onClick = { onItemClick(item.id) },
+                                    onFavorito = { viewModel.alternarFavorito(item.id) }
+                                )
                             }
                         }
                     }
@@ -84,7 +105,7 @@ fun ListaScreen(
 }
 
 @Composable
-fun ItemCard(item: Item, onClick: () -> Unit) {
+fun ItemCard(item: Item, onClick: () -> Unit, onFavorito: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,10 +122,18 @@ fun ItemCard(item: Item, onClick: () -> Unit) {
                 modifier = Modifier.size(72.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(item.nombre, style = MaterialTheme.typography.titleMedium)
                 Text("${item.raza} · Ki: ${item.ki}", style = MaterialTheme.typography.bodyMedium)
                 Text(item.afiliacion, style = MaterialTheme.typography.bodySmall)
+            }
+            // Estrella llena si es favorito, vacia si no
+            IconButton(onClick = onFavorito) {
+                Icon(
+                    imageVector = if (item.esFavorito) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = "Favorito",
+                    tint = if (item.esFavorito) Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
