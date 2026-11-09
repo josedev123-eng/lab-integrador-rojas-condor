@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,12 +47,33 @@ fun LoginScreen(
         if (e is UiState.Exito && e.datos != null) onIngresar(e.datos)
     }
 
-    // Mientras revisa si ya habia sesion abierta
-    if (estado is UiState.Cargando && correo.isEmpty()) {
-        Cargando()
-        return
+    // Surface pinta el fondo del tema (claro u oscuro) para que el texto se lea bien
+    Surface(modifier = Modifier.fillMaxSize()) {
+        // Mientras revisa si ya habia sesion abierta
+        if (estado is UiState.Cargando && correo.isEmpty()) {
+            Cargando()
+        } else {
+            FormularioLogin(
+                correo = correo,
+                clave = clave,
+                estado = estado,
+                onCorreoChange = { correo = it },
+                onClaveChange = { clave = it },
+                onIngresar = { viewModel.iniciarSesion(correo, clave) }
+            )
+        }
     }
+}
 
+@Composable
+fun FormularioLogin(
+    correo: String,
+    clave: String,
+    estado: UiState<Sesion?>,
+    onCorreoChange: (String) -> Unit,
+    onClaveChange: (String) -> Unit,
+    onIngresar: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -65,7 +87,7 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = correo,
-            onValueChange = { correo = it },
+            onValueChange = onCorreoChange,
             label = { Text("Correo") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -74,7 +96,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = clave,
-            onValueChange = { clave = it },
+            onValueChange = onClaveChange,
             label = { Text("Contraseña") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
@@ -90,7 +112,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
         Button(
-            onClick = { viewModel.iniciarSesion(correo, clave) },
+            onClick = onIngresar,
             enabled = estado !is UiState.Cargando,
             modifier = Modifier.fillMaxWidth()
         ) {

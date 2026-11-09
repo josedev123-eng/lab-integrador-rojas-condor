@@ -2,6 +2,9 @@ package com.rojas.dragonball.ui.admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,9 +63,13 @@ fun AdminScreen(
                 is UiState.Cargando -> Cargando(modifier = Modifier.height(160.dp))
                 is UiState.Error -> Text(e.mensaje, color = MaterialTheme.colorScheme.error)
                 is UiState.Exito -> {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TarjetaTotal("Personajes guardados", e.datos.guardados, Modifier.weight(1f))
-                        TarjetaTotal("Favoritos", e.datos.favoritos, Modifier.weight(1f))
+                    // IntrinsicSize.Min hace que las dos tarjetas tengan la misma altura
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.height(IntrinsicSize.Min)
+                    ) {
+                        TarjetaTotal("Guardados", e.datos.guardados, Modifier.weight(1f).fillMaxHeight())
+                        TarjetaTotal("Favoritos", e.datos.favoritos, Modifier.weight(1f).fillMaxHeight())
                     }
                 }
             }
@@ -94,8 +101,9 @@ fun TarjetaTotal(titulo: String, valor: Int, modifier: Modifier = Modifier) {
     Card(modifier = modifier) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("$valor", style = MaterialTheme.typography.displaySmall)

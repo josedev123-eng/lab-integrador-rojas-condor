@@ -59,7 +59,7 @@ fun ListaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Personajes de Dragon Ball") },
+                title = { Text("Dragon Ball") },
                 actions = {
                     // Solo el admin ve el acceso al panel
                     if (esAdmin) {
