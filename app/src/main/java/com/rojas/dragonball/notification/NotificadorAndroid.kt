@@ -60,7 +60,7 @@ class NotificadorAndroid(
         )
 
         val notificacion = NotificationCompat.Builder(context, idCanal)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notificacion)
             .setContentTitle(titulo)
             .setContentText(texto)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
