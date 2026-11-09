@@ -45,6 +45,7 @@ import com.rojas.dragonball.domain.model.Item
 import com.rojas.dragonball.ui.UiState
 import com.rojas.dragonball.ui.components.AvisoSinConexion
 import com.rojas.dragonball.ui.components.Cargando
+import com.rojas.dragonball.ui.components.coloresBarra
 import com.rojas.dragonball.ui.components.ErrorView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,6 +68,7 @@ fun ListaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = coloresBarra(),
                 title = { Text("Dragon Ball") },
                 actions = {
                     // Solo el admin ve el acceso al panel

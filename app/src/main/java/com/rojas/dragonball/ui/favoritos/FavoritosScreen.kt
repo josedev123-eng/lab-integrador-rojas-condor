@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rojas.dragonball.ui.UiState
 import com.rojas.dragonball.ui.components.Cargando
+import com.rojas.dragonball.ui.components.coloresBarra
 import com.rojas.dragonball.ui.lista.ItemCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +39,7 @@ fun FavoritosScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = coloresBarra(),
                 title = { Text("Mis favoritos") },
                 navigationIcon = {
                     IconButton(onClick = onVolver) {

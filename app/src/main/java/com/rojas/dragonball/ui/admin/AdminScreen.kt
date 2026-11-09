@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rojas.dragonball.ui.UiState
 import com.rojas.dragonball.ui.components.Cargando
+import com.rojas.dragonball.ui.components.coloresBarra
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,7 @@ fun AdminScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = coloresBarra(),
                 title = { Text("Panel Admin") },
                 navigationIcon = {
                     IconButton(onClick = onVolver) {

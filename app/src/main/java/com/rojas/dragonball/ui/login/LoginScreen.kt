@@ -81,7 +81,11 @@ fun FormularioLogin(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Dragon Ball", style = MaterialTheme.typography.headlineLarge)
+        Text(
+            "Dragon Ball",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
         Text("Inicia sesión para continuar", style = MaterialTheme.typography.bodyMedium)
         Spacer(modifier = Modifier.height(24.dp))
 
