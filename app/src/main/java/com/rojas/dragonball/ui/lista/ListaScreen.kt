@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -25,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -59,6 +61,8 @@ fun ListaScreen(
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
     val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
+    val razas by viewModel.razas.collectAsStateWithLifecycle()
+    val razaSeleccionada by viewModel.razaSeleccionada.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -105,6 +109,28 @@ fun ListaScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             )
+            // Chips para filtrar por raza (se mueven de lado si no entran)
+            if (razas.isNotEmpty()) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = razaSeleccionada == null,
+                            onClick = { viewModel.seleccionarRaza(null) },
+                            label = { Text("Todos") }
+                        )
+                    }
+                    items(razas) { raza ->
+                        FilterChip(
+                            selected = razaSeleccionada == raza,
+                            onClick = { viewModel.seleccionarRaza(raza) },
+                            label = { Text(raza) }
+                        )
+                    }
+                }
+            }
             when (val e = estado) {
                 is UiState.Cargando -> Cargando()
                 is UiState.Error -> ErrorView(mensaje = e.mensaje, onReintentar = { viewModel.refrescar() })
@@ -112,8 +138,8 @@ fun ListaScreen(
                     if (e.datos.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
-                                if (busqueda.isBlank()) "No hay personajes para mostrar"
-                                else "No se encontró ningún personaje con \"$busqueda\""
+                                if (busqueda.isBlank() && razaSeleccionada == null) "No hay personajes para mostrar"
+                                else "No se encontraron personajes con ese filtro"
                             )
                         }
                     } else {

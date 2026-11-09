@@ -31,6 +31,14 @@ class ListaViewModel(
     private val _busqueda = MutableStateFlow("")
     val busqueda: StateFlow<String> = _busqueda.asStateFlow()
 
+    // Raza elegida en los chips (null = Todos)
+    private val _razaSeleccionada = MutableStateFlow<String?>(null)
+    val razaSeleccionada: StateFlow<String?> = _razaSeleccionada.asStateFlow()
+
+    // Razas que existen en la lista guardada, para armar los chips
+    private val _razas = MutableStateFlow<List<String>>(emptyList())
+    val razas: StateFlow<List<String>> = _razas.asStateFlow()
+
     // Ultima lista que llego de Room, sin filtrar
     private var listaCompleta: List<Item> = emptyList()
 
@@ -40,6 +48,7 @@ class ListaViewModel(
         viewModelScope.launch {
             repo.items.collect { lista ->
                 listaCompleta = lista
+                _razas.value = lista.map { it.raza }.filter { it.isNotBlank() }.distinct().sorted()
                 // Se queda en Cargando hasta que termine el primer refresco
                 if (lista.isNotEmpty() || refrescoTerminado) mostrarFiltrada()
             }
@@ -53,11 +62,18 @@ class ListaViewModel(
         if (_estado.value is UiState.Exito) mostrarFiltrada()
     }
 
-    // Filtra la lista de Room por el nombre que se escribio
+    fun seleccionarRaza(raza: String?) {
+        _razaSeleccionada.value = raza
+        if (_estado.value is UiState.Exito) mostrarFiltrada()
+    }
+
+    // Filtra la lista de Room por raza y por el nombre que se escribio
     private fun mostrarFiltrada() {
         val texto = _busqueda.value.trim()
-        val filtrada = if (texto.isEmpty()) listaCompleta
-        else listaCompleta.filter { it.nombre.contains(texto, ignoreCase = true) }
+        val raza = _razaSeleccionada.value
+        val filtrada = listaCompleta
+            .filter { raza == null || it.raza == raza }
+            .filter { texto.isEmpty() || it.nombre.contains(texto, ignoreCase = true) }
         _estado.value = UiState.Exito(filtrada)
     }
 
