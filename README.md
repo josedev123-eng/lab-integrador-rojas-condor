@@ -40,6 +40,16 @@ La lista viene envuelta en `{ "items": [...] }` y el detalle agrega el planeta d
 - **Notificación local** «Se guardaron N elementos» al terminar de sincronizar, con canal y permiso `POST_NOTIFICATIONS`. Al tocarla se abre la app.
 - **Sesión** que se mantiene al reabrir la app y botón Cerrar sesión.
 
+### Mejoras de la Fase 2 (rama `mejora-ia`)
+
+- **Buscador** de personajes por nombre, que funciona también sin internet.
+- **Filtro por raza** con chips, combinable con el buscador.
+- **Estilo visual propio**: paleta de colores de Dragon Ball, barra superior naranja y títulos en negrita.
+- **Login legible en modo oscuro**, título de la lista en una línea y tarjetas del panel Admin parejas.
+- **Ícono de campana** para la notificación.
+- **3 pruebas unitarias** del `ListaViewModel` con un repositorio y un notificador falsos.
+- Consultas a la IA documentadas en [`PROMPTS.md`](PROMPTS.md).
+
 ---
 
 ## Arquitectura (MVVM)
@@ -79,6 +89,22 @@ app/src/main/java/com/rojas/dragonball/
 
 Kotlin · Jetpack Compose · Material 3 · Navigation Compose · Retrofit + Kotlinx Serialization · OkHttp ·
 Room (KSP) · Firebase Authentication · Cloud Firestore · Coil · Coroutines + StateFlow
+
+---
+
+## Pruebas unitarias
+
+Están en `app/src/test/java/com/rojas/dragonball/ui/lista/` y se ejecutan con:
+
+```
+.\gradlew :app:testDebugUnitTest
+```
+
+| Prueba | Qué revisa |
+|---|---|
+| `conInternet_muestraLaListaYNotifica` | Con internet se muestra la lista y se notifica «Se guardaron N elementos» |
+| `sinInternetYSinDatosGuardados_muestraError` | Sin internet y sin datos aparece el error con Reintentar |
+| `sinInternetConDatosGuardados_muestraLoGuardadoConAviso` | Sin internet con datos guardados se muestra la lista con el aviso |
 
 ---
 
@@ -123,7 +149,7 @@ service cloud.firestore {
 
 ## Capturas
 
-| Login | Lista (usuario) | Lista (admin) |
+| Login | Lista con buscador y filtros | Lista (admin) |
 |---|---|---|
 | <img src="capturas/01_login.png" width="230"> | <img src="capturas/02_lista_usuario.png" width="230"> | <img src="capturas/03_lista_admin.png" width="230"> |
 
@@ -131,9 +157,9 @@ service cloud.firestore {
 |---|---|---|
 | <img src="capturas/04_detalle.png" width="230"> | <img src="capturas/05_favoritos.png" width="230"> | <img src="capturas/06_panel_admin.png" width="230"> |
 
-| Notificación |
-|---|
-| <img src="capturas/07_notificacion.png" width="300"> |
+| Notificación | Ícono en la barra de estado |
+|---|---|
+| <img src="capturas/07_notificacion.png" width="300"> | <img src="capturas/08_icono_campana.png" width="300"> |
 
 ---
 
