@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
@@ -24,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -55,6 +58,7 @@ fun ListaScreen(
     // La pantalla solo observa el estado del ViewModel
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
+    val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -83,13 +87,34 @@ fun ListaScreen(
             aviso?.let {
                 AvisoSinConexion(texto = it, onReintentar = { viewModel.refrescar() })
             }
+            // Buscador por nombre
+            OutlinedTextField(
+                value = busqueda,
+                onValueChange = { viewModel.buscar(it) },
+                placeholder = { Text("Buscar personaje") },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (busqueda.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.buscar("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Borrar búsqueda")
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+            )
             when (val e = estado) {
                 is UiState.Cargando -> Cargando()
                 is UiState.Error -> ErrorView(mensaje = e.mensaje, onReintentar = { viewModel.refrescar() })
                 is UiState.Exito -> {
                     if (e.datos.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No hay personajes para mostrar")
+                            Text(
+                                if (busqueda.isBlank()) "No hay personajes para mostrar"
+                                else "No se encontró ningún personaje con \"$busqueda\""
+                            )
                         }
                     } else {
                         LazyColumn(

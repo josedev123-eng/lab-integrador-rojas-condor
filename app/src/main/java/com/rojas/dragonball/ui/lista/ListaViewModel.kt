@@ -27,16 +27,38 @@ class ListaViewModel(
     private val _aviso = MutableStateFlow<String?>(null)
     val aviso: StateFlow<String?> = _aviso.asStateFlow()
 
+    // Texto del buscador: vive en el ViewModel para no perderse al girar la pantalla
+    private val _busqueda = MutableStateFlow("")
+    val busqueda: StateFlow<String> = _busqueda.asStateFlow()
+
+    // Ultima lista que llego de Room, sin filtrar
+    private var listaCompleta: List<Item> = emptyList()
+
     private var refrescoTerminado = false
 
     init {
         viewModelScope.launch {
             repo.items.collect { lista ->
+                listaCompleta = lista
                 // Se queda en Cargando hasta que termine el primer refresco
-                if (lista.isNotEmpty() || refrescoTerminado) _estado.value = UiState.Exito(lista)
+                if (lista.isNotEmpty() || refrescoTerminado) mostrarFiltrada()
             }
         }
         refrescar()
+    }
+
+    fun buscar(texto: String) {
+        _busqueda.value = texto
+        // Solo filtra si ya hay una lista en pantalla (no mientras carga o hay error)
+        if (_estado.value is UiState.Exito) mostrarFiltrada()
+    }
+
+    // Filtra la lista de Room por el nombre que se escribio
+    private fun mostrarFiltrada() {
+        val texto = _busqueda.value.trim()
+        val filtrada = if (texto.isEmpty()) listaCompleta
+        else listaCompleta.filter { it.nombre.contains(texto, ignoreCase = true) }
+        _estado.value = UiState.Exito(filtrada)
     }
 
     fun refrescar() {
